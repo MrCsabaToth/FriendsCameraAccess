@@ -170,7 +170,7 @@ public abstract class NanoHTTPD {
 
         private final Socket acceptSocket;
 
-        private ClientHandler(InputStream inputStream, Socket acceptSocket) {
+        private ClientHandler(InputStream inputStream, Socket acceptSocket, String camera) {
             this.inputStream = inputStream;
             this.acceptSocket = acceptSocket;
         }
@@ -186,7 +186,7 @@ public abstract class NanoHTTPD {
             try {
                 outputStream = this.acceptSocket.getOutputStream();
                 TempFileManager tempFileManager = NanoHTTPD.this.tempFileManagerFactory.create();
-                HTTPSession session = new HTTPSession(tempFileManager, this.inputStream, outputStream, this.acceptSocket.getInetAddress());
+                HTTPSession session = new HTTPSession(tempFileManager, this.inputStream, outputStream, this.acceptSocket.getInetAddress(), null, null /* TODO */);
                 while (!this.acceptSocket.isClosed()) {
                     session.execute();
                 }
@@ -574,18 +574,26 @@ public abstract class NanoHTTPD {
 
         private String protocolVersion;
 
+        private String cameraIp;
+
+        private String cameraPort;
+
         public HTTPSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
             this.tempFileManager = tempFileManager;
             this.inputStream = new BufferedInputStream(inputStream, HTTPSession.BUFSIZE);
             this.outputStream = outputStream;
         }
 
-        public HTTPSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress) {
+        public HTTPSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, InetAddress inetAddress, String cameraIp, String cameraPort) {
             this.tempFileManager = tempFileManager;
             this.inputStream = new BufferedInputStream(inputStream, HTTPSession.BUFSIZE);
             this.outputStream = outputStream;
-            this.remoteIp = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "127.0.0.1" : inetAddress.getHostAddress().toString();
-            this.remoteHostname = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "localhost" : inetAddress.getHostName().toString();
+//            this.remoteIp = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "127.0.0.1" : inetAddress.getHostAddress().toString();
+//            this.remoteHostname = inetAddress.isLoopbackAddress() || inetAddress.isAnyLocalAddress() ? "localhost" : inetAddress.getHostName().toString();
+            this.remoteIp = cameraIp;
+            this.remoteHostname = cameraIp;
+            this.cameraIp = cameraIp;
+            this.cameraPort = cameraPort;
             this.headers = new HashMap<String, String>();
         }
 
@@ -1924,7 +1932,7 @@ public abstract class NanoHTTPD {
      * @return the client handler
      */
     protected ClientHandler createClientHandler(final Socket finalAccept, final InputStream inputStream) {
-        return new ClientHandler(inputStream, finalAccept);
+        return new ClientHandler(inputStream, finalAccept, null /* TODO */);
     }
 
     /**

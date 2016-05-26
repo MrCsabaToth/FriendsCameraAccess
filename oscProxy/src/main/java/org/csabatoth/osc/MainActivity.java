@@ -41,6 +41,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import java.io.IOException;
+
 /**
  * Take Picture App
  * Flow:
@@ -55,8 +57,12 @@ import android.widget.Toast;
 public class MainActivity extends AppCompatActivity {
 
     private EditText editTextIPAddress;
-    private Button buttonTakePicture;
     private Button buttonConnect;
+    private EditText editTextPortNumber;
+    private Button buttonStartProxy;
+
+    private ProxyServer proxyServer;
+
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -65,10 +71,10 @@ public class MainActivity extends AppCompatActivity {
             if (WifiClient.ACTION_WIFI_STATE.equals(action)) {
                 if (result == WifiClient.RESULT.CONNECTED) {
                     buttonConnect.setText(R.string.disconnect);
-                    buttonTakePicture.setEnabled(true);
+                    editTextPortNumber.setEnabled(true);
                 } else {
                     buttonConnect.setText(R.string.connect);
-                    buttonTakePicture.setEnabled(false);
+                    editTextPortNumber.setEnabled(false);
                 }
             }
         }
@@ -81,8 +87,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         editTextIPAddress = (EditText) findViewById(R.id.editTextIPAddr);
-        buttonTakePicture = (Button) findViewById(R.id.button_takePicture);
         buttonConnect = (Button) findViewById(R.id.button_connect);
+        editTextPortNumber = (EditText) findViewById(R.id.editTextPortNumber);
+        buttonStartProxy = (Button) findViewById(R.id.button_startProxy);
 
         //Set IP for http request
         String IP = editTextIPAddress.getText().toString();
@@ -93,12 +100,12 @@ public class MainActivity extends AppCompatActivity {
         LocalBroadcastManager.getInstance(getApplicationContext())
                 .registerReceiver(mReceiver, getFilter());
 
-        //Send 'take picture' request to camera
-        //Need to start session before taking picture
-        buttonTakePicture.setOnClickListener(new View.OnClickListener() {
+        // Starting Proxy Server
+        // Need to start session before starting the proxy
+        buttonStartProxy.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                takePicture();
+                startProxy();
             }
         });
 
@@ -138,10 +145,10 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         //ConnectionManager mConnectionManager = OctopusManager.getInstance(mContext).getConnectionManager();
         if (checkIsConnectedToDevice()) {
-            buttonTakePicture.setEnabled(true);
+            buttonStartProxy.setEnabled(true);
             buttonConnect.setText(R.string.disconnect);
         } else {
-            buttonTakePicture.setEnabled(false);
+            buttonStartProxy.setEnabled(false);
             buttonConnect.setText(R.string.connect);
         }
     }
@@ -281,6 +288,18 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(mContext, "Picture " + fileUrl + " is taken", Toast.LENGTH_LONG).show();
         } else {
             Toast.makeText(mContext, "[Error] Take picture response Error", Toast.LENGTH_LONG).show();
+        }
+    }
+
+
+    private void startProxy() {
+        try {
+            String portStr = editTextPortNumber.getText().toString();
+            int portNumber = Integer.parseInt(portStr);
+            proxyServer = new ProxyServer(portNumber);
+            proxyServer.start();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
