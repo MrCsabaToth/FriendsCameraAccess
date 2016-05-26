@@ -30,7 +30,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Proxy port:" />
+        android:text="Forwarded port:" />
 
     <EditText
         android:id="@+id/editTextPortNumber"
@@ -43,6 +43,6 @@
         android:id="@+id/button_startProxy"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="START PROXY"/>
+        android:text="PORT FORWARD"/>
 
 </LinearLayout>

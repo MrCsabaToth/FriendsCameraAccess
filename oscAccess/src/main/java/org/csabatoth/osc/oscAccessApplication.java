@@ -16,7 +16,7 @@ package org.csabatoth.osc;
 
 import com.lge.octopus.module.OctopusApplication;
 
-public class oscProxyApplication extends OctopusApplication {
+public class oscAccessApplication extends OctopusApplication {
 
     @Override
     public void onCreate() {

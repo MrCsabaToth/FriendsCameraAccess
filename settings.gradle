@@ -1,1 +1,1 @@
-include ':apidemo', ':osclibrary', ':oscProxy', ':FriendsLink-ble', ':FriendsLink-octopus', ':FriendsLink-wifi'
+include ':apidemo', ':osclibrary', ':oscAccess', ':FriendsLink-ble', ':FriendsLink-octopus', ':FriendsLink-wifi'
