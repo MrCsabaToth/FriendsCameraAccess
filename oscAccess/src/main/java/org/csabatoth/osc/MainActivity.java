@@ -42,6 +42,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.net.InetAddress;
 
 /**
  * Take Picture App
@@ -61,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText editTextPortNumber;
     private Button buttonStartProxy;
 
-    private ProxyServer proxyServer;
+    private ForwardServer forwardServer;
 
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -105,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
         buttonStartProxy.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startProxy();
+                startPortForwarder();
             }
         });
 
@@ -292,12 +293,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void startProxy() {
+    private void startPortForwarder() {
         try {
             String portStr = editTextPortNumber.getText().toString();
-            int portNumber = Integer.parseInt(portStr);
-            proxyServer = new ProxyServer(portNumber);
-            proxyServer.start();
+            int localPort = Integer.parseInt(portStr);
+            int remotePort = Integer.parseInt(HTTP_SERVER_INFO.PORT);
+            InetAddress inetAddress = InetAddress.getByName(HTTP_SERVER_INFO.IP);
+            int remoteAddress = 0;
+            for (byte b: inetAddress.getAddress())
+            {
+                remoteAddress = remoteAddress << 8 | (b & 0xFF);
+            }
+            forwardServer = new ForwardServer(localPort, remoteAddress, remotePort);
+            forwardServer.start();
         } catch (IOException e) {
             e.printStackTrace();
         }
