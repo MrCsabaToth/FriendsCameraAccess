@@ -11,6 +11,7 @@ Steps
 2. Download and start https://play.google.com/store/apps/details?id=com.elixsr.portforwarder
 3. Configure Fwd: select `lo` as the network and usually your camera determines the `TCP` forward rule (remote IP and port):
 
+
      192.168.43.1:6624
 
 Pick also a phone local port, let's pick `3137`.
@@ -20,10 +21,12 @@ Pick also a phone local port, let's pick `3137`.
 4. Connect your phoen to the PC through `USB`.
 5. Set up a port forward from your PC to your phone with `ADB`:
 
-     adb forward tcp:3137 tcp:3137
+
+     ~/android-sdk-linux/platform-tools/adb forward tcp:3137 tcp:3137
 
 6. Start a `Rich REST Client` or `Postman` on your PC. Using that:
 7. Start a session
+
 
      http://localhost:3137/osc/commands/execute
      {
@@ -46,6 +49,7 @@ Response:
 
 8. Take a picture
 
+
      http://localhost:3137/osc/commands/execute
      {
          "name": "camera.takePicture",
@@ -56,6 +60,7 @@ Response:
 
 9. Close the session
 
+
      http://localhost:3137/osc/commands/execute
      {
          "name": "camera.closeSession",
@@ -65,6 +70,7 @@ Response:
      }
 
 10. Stop `ADB` port forwarding:
+
 
      ~/android-sdk-linux/platform-tools/adb forward --remove tcp:3137
 
