@@ -1,55 +1,57 @@
-README 
-========
+Controlling OSC 360 Camera from your PC 
+===========
  
-Friends Camera SDK for Android Revision 1.0
+This is a part of a software set which goal is to control and possibly stream OSC camera from your PC.
+Originally I integrated a HTTP Proxy then a port forwarder, but I realized that we'll just simply use a port forwarder application for the purpose.
 
-Contents
-
-- Introduction
-- FriendsLink Libraries
-- Sample Application
-- Documentation
-
-
-
-Introduction
+Steps
 ------------
 
-     Friends Camera SDK provides Friends Camera API and FriendsLink Libraries 
-     to developers. Using these APIs, developers can create 
-     applications that can connect to and control LG 360 CAM. 
-     
-     Friends Camera SDK for Android package includes the following components:
-     - FriendsLink Libraries: BLE and Wi-Fi connection with Friends devices
-     - Sample application: Sample application with source codes
-     - Documentation: Developer guide (API Reference included)
+1. Start FriendsCameraAccess on your phone and connect to your camera. Now your phone's wifi is used for the `OSC` connection.
+2. Download and start https://play.google.com/store/apps/details?id=com.elixsr.portforwarder
+3. Configure Fwd: select `lo` as the network and usually your camera determines the `TCP` forward rule (remote IP and port):
+     192.168.43.1:6624
+Pick also a phone local port, let's pick `3137`.
+     3137
+4. Connect your phoen to the PC through `USB`.
+5. Set up a port forward from your PC to your phone with `ADB`:
+     adb forward tcp:3137 tcp:3137
+6. Start a `Rich REST Client` or `Postman` on your PC. Using that:
+7. Start a session
+     http://localhost:3137/osc/commands/execute
+     {
+      "name": "camera.startSession",
+        "parameters": {
+          "timeout": 50
+        }
+     }
+Response:
+     {
+       "name": "camera.startSession"
+       "state": "done"
+       "results": {
+         "sessionId": "16b857"
+         "timeout": 50
+       }
+     }
+8. Take a picture
+     http://localhost:3137/osc/commands/execute
+     {
+       "name": "camera.takePicture",
+         "parameters": {
+             "sessionId": "16b857"
+         }
+     }
+9. Close the session
+     http://localhost:3137/osc/commands/execute
+     {
+       "name": "camera.closeSession",
+         "parameters": {
+             "sessionId": "16b857"
+         }
+     }
+10. Stop `ADB` port forwarding:
+     ~/android-sdk-linux/platform-tools/adb forward --remove tcp:3137
+11. Stop the `Fwd` and `FriendsCameraAccess`.
 
-
-FriendsLink Libraries
----------------------
-     Friends Camera SDK includes the FriendsLink libraries providing the following key features:
-     - FriendsLink-ble: BLE library
-     - FriendsLink-octopus: connectionManager API library
-     - FriendsLink-wifi: Wi-Fi library
-
-
-Sample Application
-------------------
-
-     Friends Camera SDK includes a sample application that demonstrates 
-     how to use Friends Camera API and FriendsLink Libraries to implement 
-     features that interact with LG 360 CAM.
-
-
-Documentation
--------------
-
-     Friends Camera SDK has documentation that provides a guide to
-     application development with Friends Camera SDK.
-
-------------------------------------------------------------------------
-
-LG Friends Developer
-
-http://developer.lge.com/Friends
-
+More to come using this setup.
