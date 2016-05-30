@@ -14,6 +14,7 @@ Steps
 
      192.168.43.1:6624
 
+
 Pick also a phone local port, let's pick `3137`.
 
      3137
@@ -23,6 +24,7 @@ Pick also a phone local port, let's pick `3137`.
 
 
      ~/android-sdk-linux/platform-tools/adb forward tcp:3137 tcp:3137
+
 
 6. Start a `Rich REST Client` or `Postman` on your PC. Using that:
 7. Start a session
@@ -36,7 +38,9 @@ Pick also a phone local port, let's pick `3137`.
         }
      }
 
+
 Response:
+
 
      {
        "name": "camera.startSession"
@@ -46,6 +50,7 @@ Response:
          "timeout": 50
        }
      }
+
 
 8. Take a picture
 
@@ -58,6 +63,7 @@ Response:
          }
      }
 
+
 9. Close the session
 
 
@@ -69,10 +75,12 @@ Response:
          }
      }
 
+
 10. Stop `ADB` port forwarding:
 
 
      ~/android-sdk-linux/platform-tools/adb forward --remove tcp:3137
+
 
 11. Stop the `Fwd` and `FriendsCameraAccess`.
 
