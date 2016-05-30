@@ -24,8 +24,8 @@ import java.net.Socket;
 
 public class AdbUtils {
     private static final String ADB_OK = "OKAY";
-    private static final int ADB_PORT = 5037;
-    private static final String ADB_HOST = "127.0.0.1";
+    public static final int ADB_PORT = 5037;
+    public static final String ADB_HOST = "127.0.0.1";
     private static final int ADB_RESPONSE_SIZE = 4;
     private static final String LOGTAG = "AdbUtils";
     /**

@@ -36,8 +36,9 @@
         android:id="@+id/editTextPortNumber"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:inputType="none"
         android:ems="15"
-        android:text="3137" />
+        android:text="5037" />
 
     <Button
         android:id="@+id/button_startProxy"
