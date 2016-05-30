@@ -59,10 +59,6 @@ public class MainActivity extends AppCompatActivity {
 
     private EditText editTextIPAddress;
     private Button buttonConnect;
-    private EditText editTextPortNumber;
-    private Button buttonStartProxy;
-
-    private ForwardServer forwardServer;
 
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -72,10 +68,8 @@ public class MainActivity extends AppCompatActivity {
             if (WifiClient.ACTION_WIFI_STATE.equals(action)) {
                 if (result == WifiClient.RESULT.CONNECTED) {
                     buttonConnect.setText(R.string.disconnect);
-                    editTextPortNumber.setEnabled(true);
                 } else {
                     buttonConnect.setText(R.string.connect);
-                    editTextPortNumber.setEnabled(false);
                 }
             }
         }
@@ -89,8 +83,6 @@ public class MainActivity extends AppCompatActivity {
 
         editTextIPAddress = (EditText) findViewById(R.id.editTextIPAddr);
         buttonConnect = (Button) findViewById(R.id.button_connect);
-        editTextPortNumber = (EditText) findViewById(R.id.editTextPortNumber);
-        buttonStartProxy = (Button) findViewById(R.id.button_startProxy);
 
         //Set IP for http request
         String IP = editTextIPAddress.getText().toString();
@@ -100,15 +92,6 @@ public class MainActivity extends AppCompatActivity {
         // register local broadcast receiver
         LocalBroadcastManager.getInstance(getApplicationContext())
                 .registerReceiver(mReceiver, getFilter());
-
-        // Starting Proxy Server
-        // Need to start session before starting the proxy
-        buttonStartProxy.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startPortForwarder();
-            }
-        });
 
         buttonConnect.setOnClickListener(new View.OnClickListener() {
 
@@ -146,10 +129,8 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         //ConnectionManager mConnectionManager = OctopusManager.getInstance(mContext).getConnectionManager();
         if (checkIsConnectedToDevice()) {
-            buttonStartProxy.setEnabled(true);
             buttonConnect.setText(R.string.disconnect);
         } else {
-            buttonStartProxy.setEnabled(false);
             buttonConnect.setText(R.string.connect);
         }
     }
@@ -183,132 +164,4 @@ public class MainActivity extends AppCompatActivity {
             HTTP_SERVER_INFO.PORT = "6624";
         }
     }
-
-    /**
-     * Send 'take picture' request to camera
-     * - OSC Protocol: osc/commands/execute
-     * - OSC API: camera.takePicture
-     * - Parameter for 'camera.takePicture':
-     * {
-     * "parameters": {
-     * "sessionId": session ID
-     * }
-     * }
-     *
-     * - Use OSCCommandExecute class for /osc/commands/execute
-     * - OSCCommandsExecute(String command_name, JSONObject parameters);
-     */
-    private void takePicture() {
-        //Set parameter for camera.takePicture API
-        //Make parameter by using JSONObject
-        OSCCommandsExecute commandsExecute = new OSCCommandsExecute("camera.takePicture", null);
-        commandsExecute.setListener(new HttpAsyncTask.OnHttpListener() {
-            @Override
-            public void onResponse(OSCReturnType type, Object response) {
-
-                try {
-                    JSONObject jObject = new JSONObject((String) response);
-                    String state;
-
-                    //Get normal response
-                    if (jObject.has(OSCParameterNameMapper.COMMAND_STATE)) {
-                        state = jObject.getString(OSCParameterNameMapper.COMMAND_STATE);
-                        //Taking picture is on progress
-                        if (state.equals(OSCParameterNameMapper.STATE_INPROGRESS)) {
-                            String commandId = jObject.getString(OSCParameterNameMapper.COMMAND_ID);
-                            checkCommandsStatus(commandId);
-                        } else {  //Taking picture is finished
-                            handleFinishTakePicture((String) response);
-                        }
-                    } else { //Get error response
-                        Toast.makeText(mContext, "[Error] Error occur during taking picture", Toast.LENGTH_LONG).show();
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        commandsExecute.execute();
-    }
-
-
-    /**
-     * Check previous api status
-     * - OSC Protocol: osc/commands/status
-     * - Parameter for /osc/commands/status: command ID(get from previous /osc/commands/execute)
-     * - Use OSCCommandStatus class for /osc/commands/status
-     * - OSCCommandsStatus(String command_id);
-     */
-    private void checkCommandsStatus(final String commandId) {
-        OSCCommandsStatus commandsStatus = new OSCCommandsStatus(commandId);
-        commandsStatus.setListener(new HttpAsyncTask.OnHttpListener() {
-            @Override
-            public void onResponse(OSCReturnType type, final Object response) {
-
-                try {
-                    JSONObject jObject = new JSONObject((String) response);
-                    String state;
-                    //Get normal response
-                    if (jObject.has(OSCParameterNameMapper.COMMAND_STATE)) {
-                        state = jObject.getString(OSCParameterNameMapper.COMMAND_STATE);
-                        //Taking picture is on progress
-                        if (state.equals(OSCParameterNameMapper.STATE_INPROGRESS)) {
-                            checkCommandsStatus(commandId);
-                        } else { //Taking picture is finished
-                            handleFinishTakePicture((String) response);
-                        }
-                    } else {//Get error response
-                        Toast.makeText(mContext, "Error occur during taking picture", Toast.LENGTH_LONG).show();
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-            }
-        });
-        commandsStatus.execute();
-    }
-
-
-    private void handleFinishTakePicture(String response) {
-        //Finish take picture, then show toast and close session
-        String fileUrl = null;
-        try {
-            JSONObject jObject = new JSONObject((String) response);
-
-            if (jObject.has(OSCParameterNameMapper.RESULTS)) {
-                JSONObject results = jObject.getJSONObject(OSCParameterNameMapper.RESULTS);
-
-                fileUrl = results.getString(OSCParameterNameMapper.FILEURL);
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        if (fileUrl != null) {
-            Toast.makeText(mContext, "Picture " + fileUrl + " is taken", Toast.LENGTH_LONG).show();
-        } else {
-            Toast.makeText(mContext, "[Error] Take picture response Error", Toast.LENGTH_LONG).show();
-        }
-    }
-
-
-    private void startPortForwarder() {
-        try {
-            String portStr = editTextPortNumber.getText().toString();
-            int localPort = Integer.parseInt(portStr);
-            int remotePort = Integer.parseInt(HTTP_SERVER_INFO.PORT);
-            InetAddress inetAddress = InetAddress.getByName(HTTP_SERVER_INFO.IP);
-            int remoteAddress = 0;
-            for (byte b: inetAddress.getAddress())
-            {
-                remoteAddress = remoteAddress << 8 | (b & 0xFF);
-            }
-            forwardServer = new ForwardServer(localPort, remoteAddress, remotePort);
-            forwardServer.start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
 }
